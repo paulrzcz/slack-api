@@ -12,24 +12,20 @@ Example
 ``` haskell
 module EchoBot where
 
-import Web.Slack
-import Web.Slack.Message
 import System.Environment (lookupEnv)
-import Data.Maybe (fromMaybe)
-import Control.Applicative
-
-myConfig :: String -> SlackConfig
-myConfig apiToken = SlackConfig
-         { _slackApiToken = apiToken -- Specify your API token here
-         }
-
-echoBot :: SlackBot ()
-echoBot (Message cid _ msg _ _ _) = sendMessage cid msg
-echoBot _ = return ()
+import Web.Slack
 
 main :: IO ()
 main = do
-  apiToken <- fromMaybe (error "SLACK_API_TOKEN not set")
-               <$> lookupEnv "SLACK_API_TOKEN"
-  runBot (myConfig apiToken) echoBot ()
+    Just token <- lookupEnv "SLACK_API_TOKEN"
+    let config = SlackConfig { _slackApiToken = token }
+    runSlack config echoBot
+
+echoBot :: Slack ()
+echoBot = do
+    event <- getNextEvent
+    case event of
+        (Message cid _ msg _ _ _) -> sendMessage cid msg
+        _ -> return ()
+    echoBot
 ```

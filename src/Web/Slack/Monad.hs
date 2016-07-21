@@ -126,6 +126,11 @@ sendMessage cid msg = askSlackHandle >>= \h -> liftIO (H.sendMessage h cid msg)
 -- | Post a complex message using the web API. There's a lot more
 -- functionality than is exposed here - see
 -- <https://api.slack.com/methods/chat.postMessage>.
+--
+-- Note that, since this function uses the slack web API (not the RTD api)
+-- under the hood, it behaves a bit differently to @sendMessage@. In
+-- particular: rich messages sent by your bot will appear as events. You
+-- will probably want to explicitly ignore these.
 sendRichMessage
     :: MonadSlack m => ChannelId -> T.Text -> [Attachment] -> m (Either T.Text ())
 sendRichMessage cid msg as = do
