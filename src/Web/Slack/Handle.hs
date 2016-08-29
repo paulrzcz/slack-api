@@ -15,8 +15,7 @@
 -- >     _ -> return ()
 --
 -- This style is typically more verbose than code written with the 'Slack'
--- monad, but it is more flexible. For instance, consider forking multiple
--- threads which share a single handle.
+-- monad, but some people find it easier to work with.
 --
 module Web.Slack.Handle
     ( SlackHandle
