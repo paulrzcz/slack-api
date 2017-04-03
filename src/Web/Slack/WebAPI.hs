@@ -22,7 +22,7 @@ import qualified Network.Wreq as W
 import Web.Slack.Types
 
 -- | Configuration options needed to connect to the Slack API
-data SlackConfig = SlackConfig
+newtype SlackConfig = SlackConfig
    { _slackApiToken :: String -- ^ API Token for Bot
    } deriving (Show)
 
@@ -37,12 +37,13 @@ makeSlackCall
 makeSlackCall conf method setArgs = do
     let url = "https://slack.com/api/" ++ method
     let setToken = W.param "token" .~ [T.pack (conf ^. slackApiToken)]
-    let opts = W.defaults & setToken & setArgs
+    let setScope = W.param "scope" .~ [T.pack "read"]
+    let opts = W.defaults & setToken & setScope & setArgs
     rawResp <- liftIO $ W.getWith opts url
     resp <- rawResp ^? W.responseBody . _Value ?? "Couldn't parse response"
     case resp ^? key "ok"  . _Bool of
         Just True  -> return resp
-        Just False -> throwError $ resp ^. key "error" . _String
+        Just False -> throwError $ encode' resp -- ^. key "error" . _String
         Nothing    -> throwError "Couldn't parse key 'ok' from response"
 
 -------------------------------------------------------------------------------
@@ -90,4 +91,3 @@ fromJSON' x = case fromJSON x of
 infixl 7 ??
 (??) :: MonadError e m => Maybe a -> e -> m a
 x ?? e = maybe (throwError e) return x
-

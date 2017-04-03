@@ -13,6 +13,8 @@ import           Control.Applicative
 import           Control.Lens
 import           Control.Monad.IO.Class
 import qualified Control.Monad.State       as S
+import Data.Time.Format
+import Data.Time.Clock
 import qualified Network.WebSockets        as WS
 import           Web.Slack.Types
 import           Web.Slack.WebAPI (SlackConfig)
@@ -44,7 +46,11 @@ makeLenses ''SlackState
 makeLenses ''Metainfo
 
 slackLog :: Show a => a -> MonadIO m => m ()
-slackLog = liftIO . print
+slackLog logStr = liftIO $ do
+  t <- getCurrentTime
+  putStr $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H:%M:%S")) t
+  putStr " - "
+  print logStr
 
 counter :: Slack s Int
 counter = meta . msgCounter <<+= 1

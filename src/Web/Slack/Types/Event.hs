@@ -89,6 +89,8 @@ data Event where
   Pong :: Time -> Event
   ReconnectUrl :: URL -> Event
   TeamMigrationStarted :: Event
+  UpdateThreadState :: Bool -> Int -> SlackTimeStamp -> Event
+  DesktopNotification :: Event
   -- Unstable
   PinAdded :: Event
   PinRemoved :: Event
@@ -124,7 +126,7 @@ parseType o@(Object v) typ =
         submitter <- case subt of
                       Just (SBotMessage bid _ _) -> return $ BotComment bid
                       _ -> maybe System UserComment <$> v .:? "user"
-        void $ (v .: "channel" :: Parser ChannelId)
+        void (v .: "channel" :: Parser ChannelId)
         hidden <- (\case {Just True -> True; _ -> False}) <$> v .:? "hidden"
         if not hidden
           then Message <$>  v .: "channel" <*> pure submitter  <*> v .: "text" <*> v .: "ts" <*> pure subt <*> v .:? "edited"
@@ -187,6 +189,8 @@ parseType o@(Object v) typ =
       "team_migration_started" -> pure TeamMigrationStarted
       "pin_added" -> pure PinAdded
       "pin_removed" -> pure PinRemoved
+      "update_thread_state" -> UpdateThreadState <$> v .: "has_unreads" <*> v .: "mention_count" <*> v .: "event_ts"
+      "desktop_notification" -> pure DesktopNotification
       _ -> return $ UnknownEvent o
 parseType _ _ = error "Expecting object"
 
