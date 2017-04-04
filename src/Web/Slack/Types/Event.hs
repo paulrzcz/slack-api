@@ -91,6 +91,7 @@ data Event where
   TeamMigrationStarted :: Event
   UpdateThreadState :: Bool -> Int -> SlackTimeStamp -> Event
   DesktopNotification :: Event
+  MemberJoinedChannel :: ChannelId -> UserId -> SlackTimeStamp -> Event
   -- Unstable
   PinAdded :: Event
   PinRemoved :: Event
@@ -191,6 +192,7 @@ parseType o@(Object v) typ =
       "pin_removed" -> pure PinRemoved
       "update_thread_state" -> UpdateThreadState <$> v .: "has_unreads" <*> v .: "mention_count" <*> v .: "event_ts"
       "desktop_notification" -> pure DesktopNotification
+      "member_joined_channel" -> MemberJoinedChannel <$> v .: "channel" <*> v .: "user" <*> v .: "event_ts"
       _ -> return $ UnknownEvent o
 parseType _ _ = error "Expecting object"
 
